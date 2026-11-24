@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MealBlock" />
+  <title>MealBlock — Meal Planner &amp; Weight Tracker</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+  <link rel="apple-touch-icon" href="./icons/icon.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="./js/store.js"></script>
+  <script defer src="./js/chart.js"></script>
+  <script defer src="./js/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sticky Top Header -->
+    <header class="app-header">
+      <div class="header-row">
+        <div class="brand">
+          <img src="./icons/icon.svg" alt="" class="brand-icon" width="28" height="28" />
+          <div>
+            <h1 class="brand-title">MealBlock</h1>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button type="button" id="btn-next-timer-pill" class="timer-pill hidden" title="Go to Schedule &amp; Timer">
+            <span class="pulse-dot"></span>
+            <span id="header-timer-text">--:--</span>
+          </button>
+          <button type="button" id="btn-targets" class="icon-btn" aria-label="Adjust targets" title="Daily Targets">
+            <span>Targets</span>
+          </button>
+          <button type="button" id="btn-settings" class="icon-btn" aria-label="Settings and backup" title="Settings &amp; Backup">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Macro Progress Strip -->
+      <div class="macro-strip" id="macro-strip">
+        <div class="macro-card" id="cal-summary-card">
+          <div class="macro-top">
+            <span class="macro-label">Calories</span>
+            <span class="macro-numbers"><strong id="cal-total">0</strong> / <span id="cal-target">2200</span> kcal</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill cal-fill" id="cal-bar"></div>
+          </div>
+          <div class="macro-sub">
+            <span id="cal-remaining">2200 left</span>
+            <span id="cal-eaten">Eaten: 0</span>
+          </div>
+        </div>
+
+        <div class="macro-card" id="prot-summary-card">
+          <div class="macro-top">
+            <span class="macro-label">Protein</span>
+            <span class="macro-numbers"><strong id="prot-total">0</strong> / <span id="prot-target">160</span> g</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill prot-fill" id="prot-bar"></div>
+          </div>
+          <div class="macro-sub">
+            <span id="prot-remaining">160g left</span>
+            <span id="prot-eaten">Eaten: 0g</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <main class="app-main">
+      <!-- TAB 1: TODAY / PLANNER -->
+      <section id="tab-today" class="tab-panel active" aria-label="Daily Meal Planner">
+        <div class="date-bar card">
+          <button type="button" id="btn-prev-day" class="nav-arrow" aria-label="Previous day">&lsaquo;</button>
+          <div class="date-center">
+            <input type="date" id="date-picker" class="date-input" aria-label="Select date" />
+            <span id="date-friendly" class="date-friendly">Today</span>
+          </div>
+          <button type="button" id="btn-today-jump" class="chip-btn hidden">Today</button>
+          <button type="button" id="btn-next-day" class="nav-arrow" aria-label="Next day">&rsaquo;</button>
+        </div>
+
+        <div class="section-toolbar">
+          <div class="toolbar-info">
+            <h2 class="section-title">Meal Slots</h2>
+            <span id="slot-count-badge" class="count-badge">0 slots</span>
+          </div>
+          <div class="toolbar-actions">
+            <button type="button" id="btn-copy-prev" class="chip-btn" title="Copy slots from yesterday">Copy Yesterday</button>
+            <button type="button" id="btn-save-template" class="chip-btn" title="Save this day's slot layout as default for new days">Set Default</button>
+          </div>
+        </div>
+
+        <div id="slots-list" class="slots-list"></div>
+
+        <div class="add-slot-row">
+          <button type="button" id="btn-add-slot" class="btn-primary btn-full">+ Add Meal Slot</button>
+        </div>
+      </section>
+
+      <!-- TAB 2: MEAL BLOCKS LIBRARY -->
+      <section id="tab-meals" class="tab-panel" aria-label="Fixed Meal Blocks">
+        <div class="section-toolbar">
+          <div class="toolbar-info">
+            <h2 class="section-title">Fixed Meal Blocks</h2>
+            <span id="block-count-badge" class="count-badge">0 saved</span>
+          </div>
+          <button type="button" id="btn-new-block" class="btn-primary btn-sm">+ New Block</button>
+        </div>
+
+        <div class="filter-bar">
+          <input type="search" id="block-search" class="input-field" placeholder="Search saved meals..." aria-label="Search saved meals" />
+          <div id="block-category-chips" class="chips-scroll"></div>
+        </div>
+
+        <div id="blocks-list" class="blocks-list"></div>
+      </section>
+
+      <!-- TAB 3: WEIGHT TRACKER -->
+      <section id="tab-weight" class="tab-panel" aria-label="Weight Tracker">
+        <form id="weight-form" class="card weight-entry-card">
+          <div class="weight-form-header">
+            <h2 class="section-title">Log Weight (kg)</h2>
+            <span id="weight-goal-pill" class="count-badge"></span>
+          </div>
+          <div class="weight-form-grid">
+            <div class="field-group">
+              <label for="weight-input">Weight (kg)</label>
+              <input type="number" id="weight-input" class="input-field" step="0.1" min="20" max="350" placeholder="74.5" required />
+            </div>
+            <div class="field-group">
+              <label for="weight-date">Date</label>
+              <input type="date" id="weight-date" class="input-field" required />
+            </div>
+          </div>
+          <div class="weight-form-bottom">
+            <input type="text" id="weight-note" class="input-field" maxlength="80" placeholder="Optional note (e.g. morning fasted)" aria-label="Weight note" />
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </form>
+
+        <div class="stats-grid" id="weight-stats">
+          <div class="stat-card card">
+            <span class="stat-label">Latest</span>
+            <strong class="stat-value" id="stat-latest">-- kg</strong>
+          </div>
+          <div class="stat-card card">
+            <span class="stat-label">7-Day Avg</span>
+            <strong class="stat-value" id="stat-avg7">-- kg</strong>
+          </div>
+          <div class="stat-card card">
+            <span class="stat-label">Change (7d)</span>
+            <strong class="stat-value" id="stat-change">-- kg</strong>
+          </div>
+          <div class="stat-card card">
+            <span class="stat-label">To Goal</span>
+            <strong class="stat-value" id="stat-goal">-- kg</strong>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-header">
+            <h3 class="card-title">Weight Trend (kg)</h3>
+            <div class="range-pills" id="chart-ranges">
+              <button type="button" class="range-btn" data-range="7">7D</button>
+              <button type="button" class="range-btn active" data-range="30">30D</button>
+              <button type="button" class="range-btn" data-range="90">90D</button>
+              <button type="button" class="range-btn" data-range="all">All</button>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <span><i class="legend-dot dot-daily"></i> Daily (kg)</span>
+            <span><i class="legend-dot dot-avg"></i> 7d Avg</span>
+            <span id="legend-goal" class="hidden"><i class="legend-dot dot-goal"></i> Goal</span>
+          </div>
+          <div id="weight-chart-container" class="chart-container"></div>
+          <div id="chart-tooltip" class="chart-tooltip-bar">Tap a point on the chart to inspect</div>
+        </div>
+
+        <div class="section-toolbar">
+          <h3 class="section-title">History</h3>
+          <span id="weight-count-badge" class="count-badge">0 entries</span>
+        </div>
+        <div id="weight-history" class="weight-history"></div>
+      </section>
+
+      <!-- TAB 4: SCHEDULE & TIMER -->
+      <section id="tab-schedule" class="tab-panel" aria-label="Meal Schedule and Timer">
+        <!-- Timer Card -->
+        <div class="card timer-card">
+          <div class="timer-header">
+            <div>
+              <h2 class="section-title">Meal Timer</h2>
+              <p id="timer-subtitle" class="muted-text">Set meal times on Today's slots or start a timer</p>
+            </div>
+            <label class="toggle-chip" title="Play chime when timer hits zero">
+              <input type="checkbox" id="toggle-sound" />
+              <span>Chime</span>
+            </label>
+          </div>
+
+          <div class="timer-display" id="timer-display">00:00:00</div>
+          <div id="timer-target-label" class="timer-target-label">No upcoming scheduled meal</div>
+
+          <div class="timer-controls">
+            <button type="button" class="chip-btn quick-timer-btn" data-mins="30">+30m</button>
+            <button type="button" class="chip-btn quick-timer-btn" data-mins="60">+1h</button>
+            <button type="button" class="chip-btn quick-timer-btn" data-mins="120">+2h</button>
+            <button type="button" class="chip-btn quick-timer-btn" data-mins="180">+3h</button>
+            <button type="button" id="btn-clear-custom-timer" class="chip-btn hidden">Reset</button>
+          </div>
+
+          <div class="timer-alert-row">
+            <button type="button" id="btn-notify-perm" class="chip-btn">Enable Browser Alerts</button>
+            <span class="muted-small">Alerts run while the app tab is open.</span>
+          </div>
+        </div>
+
+        <!-- Mini 7-Day Calendar Strip -->
+        <div class="card calendar-card">
+          <div class="chart-header">
+            <h3 class="card-title">Week Overview</h3>
+            <span id="week-range-label" class="muted-small"></span>
+          </div>
+          <div id="week-strip" class="week-strip"></div>
+        </div>
+
+        <!-- Daily Timeline -->
+        <div class="section-toolbar">
+          <h3 class="section-title">Today's Eating Schedule</h3>
+          <span id="schedule-date-badge" class="count-badge"></span>
+        </div>
+        <div id="schedule-timeline" class="timeline-list"></div>
+      </section>
+    </main>
+
+    <!-- Bottom Tab Navigation -->
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button type="button" class="nav-tab active" data-tab="today">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span>Today</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="meals">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h10"></path>
+        </svg>
+        <span>Meals</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="weight">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        <span>Weight</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="schedule">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Schedule</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL: Pick / Swap Meal for a Slot -->
+  <div id="modal-picker" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="picker-title">Choose Meal</h2>
+        <button type="button" class="modal-close" data-close="modal-picker" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button type="button" class="modal-tab-btn active" data-picker-mode="library">Fixed Blocks</button>
+        <button type="button" class="modal-tab-btn" data-picker-mode="custom">Custom / Edit Slot</button>
+      </div>
+
+      <div id="picker-library-pane" class="modal-body">
+        <div class="picker-portion-row">
+          <span>Portion:</span>
+          <div class="portion-pills" id="picker-portions">
+            <button type="button" class="chip-btn" data-mult="0.5">0.5&times;</button>
+            <button type="button" class="chip-btn active" data-mult="1">1&times;</button>
+            <button type="button" class="chip-btn" data-mult="1.5">1.5&times;</button>
+            <button type="button" class="chip-btn" data-mult="2">2&times;</button>
+          </div>
+        </div>
+        <input type="search" id="picker-search" class="input-field" placeholder="Search your fixed meal blocks..." />
+        <div id="picker-list" class="picker-list"></div>
+      </div>
+
+      <form id="picker-custom-form" class="modal-body hidden">
+        <div class="field-group">
+          <label for="slot-label-input">Slot Label</label>
+          <input type="text" id="slot-label-input" class="input-field" placeholder="e.g. Breakfast, Snack 2" maxlength="40" />
+        </div>
+        <div class="field-group">
+          <label for="slot-meal-name">Meal Name</label>
+          <input type="text" id="slot-meal-name" class="input-field" placeholder="e.g. Greek Yogurt &amp; Berries" maxlength="80" required />
+        </div>
+        <div class="two-col">
+          <div class="field-group">
+            <label for="slot-meal-cals">Calories (kcal)</label>
+            <input type="number" id="slot-meal-cals" class="input-field" min="0" max="10000" step="1" required />
+          </div>
+          <div class="field-group">
+            <label for="slot-meal-prot">Protein (g)</label>
+            <input type="number" id="slot-meal-prot" class="input-field" min="0" max="1000" step="0.5" required />
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="slot-meal-time">Meal Time (optional)</label>
+          <input type="time" id="slot-meal-time" class="input-field" />
+        </div>
+        <div class="modal-footer-btns">
+          <button type="button" id="btn-clear-slot" class="btn-secondary">Clear Meal</button>
+          <button type="submit" class="btn-primary">Save to Slot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Create / Edit Fixed Meal Block -->
+  <div id="modal-block" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="block-modal-title">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="block-modal-title">New Fixed Meal Block</h2>
+        <button type="button" class="modal-close" data-close="modal-block" aria-label="Close">&times;</button>
+      </div>
+      <form id="block-form" class="modal-body">
+        <input type="hidden" id="block-id" />
+        <div class="field-group">
+          <label for="block-name">Meal Name</label>
+          <input type="text" id="block-name" class="input-field" placeholder="e.g. Chicken Rice Bowl" maxlength="80" required />
+        </div>
+        <div class="two-col">
+          <div class="field-group">
+            <label for="block-cals">Calories (kcal)</label>
+            <input type="number" id="block-cals" class="input-field" min="0" max="10000" step="1" required />
+          </div>
+          <div class="field-group">
+            <label for="block-prot">Protein (g)</label>
+            <input type="number" id="block-prot" class="input-field" min="0" max="1000" step="0.5" required />
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field-group">
+            <label for="block-category">Category</label>
+            <select id="block-category" class="input-field">
+              <option value="Breakfast">Breakfast</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+              <option value="Snack">Snack</option>
+              <option value="Shake / Drink">Shake / Drink</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="block-time">Default Time (optional)</label>
+            <input type="time" id="block-time" class="input-field" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="block-notes">Notes / Ingredients (optional)</label>
+          <textarea id="block-notes" class="input-field" rows="2" maxlength="200" placeholder="e.g. 180g chicken breast, 150g cooked rice, veg"></textarea>
+        </div>
+        <div class="modal-footer-btns">
+          <button type="button" id="btn-delete-block" class="btn-danger hidden">Delete</button>
+          <button type="submit" class="btn-primary">Save Block</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Daily Targets -->
+  <div id="modal-targets" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="targets-modal-title">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="targets-modal-title">Daily Targets</h2>
+        <button type="button" class="modal-close" data-close="modal-targets" aria-label="Close">&times;</button>
+      </div>
+      <form id="targets-form" class="modal-body">
+        <div class="field-group">
+          <label for="target-calories">Daily Calories (kcal)</label>
+          <input type="number" id="target-calories" class="input-field" min="500" max="10000" step="10" required />
+        </div>
+        <div class="field-group">
+          <label for="target-protein">Daily Protein (g)</label>
+          <input type="number" id="target-protein" class="input-field" min="10" max="500" step="1" required />
+        </div>
+        <div class="field-group">
+          <label for="target-weight">Goal Weight (kg, optional)</label>
+          <input type="number" id="target-weight" class="input-field" min="20" max="350" step="0.1" placeholder="Leave blank if none" />
+        </div>
+        <div class="modal-footer-btns">
+          <button type="submit" class="btn-primary btn-full">Update Targets</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Settings & Backup -->
+  <div id="modal-settings" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="settings-modal-title">Settings &amp; Backup</h2>
+        <button type="button" class="modal-close" data-close="modal-settings" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body settings-body">
+        <div class="setting-row">
+          <div>
+            <strong>Appearance</strong>
+            <p class="muted-small">Switch between dark and light theme</p>
+          </div>
+          <button type="button" id="btn-theme-toggle" class="chip-btn">Dark</button>
+        </div>
+
+        <div class="setting-section">
+          <strong>On-Device Backup</strong>
+          <p class="muted-small">Everything is saved on this device. Export a JSON backup before clearing browser data.</p>
+          <div class="two-col">
+            <button type="button" id="btn-export-json" class="btn-secondary">Export JSON</button>
+            <label class="btn-secondary file-btn">
+              Import JSON
+              <input type="file" id="input-import-json" accept=".json,application/json" hidden />
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-section">
+          <strong>Add to Phone Home Screen</strong>
+          <p class="muted-small">On iPhone (Safari): tap Share &rarr; <em>Add to Home Screen</em>. On Android (Chrome): tap &vellip; &rarr; <em>Install app</em>.</p>
+        </div>
+
+        <div class="setting-section danger-zone">
+          <strong>Data Management</strong>
+          <div class="two-col">
+            <button type="button" id="btn-restore-samples" class="btn-secondary">Add Sample Meals</button>
+            <button type="button" id="btn-reset-all" class="btn-danger">Reset All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+</body>
+</html>
